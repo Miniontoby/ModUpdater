@@ -1,0 +1,6 @@
+#!/bin/bash
+if [[ "x$1" == "x" ]]; then
+	nano ./src/main/java/com/miniontoby/ModUpdater/App.java
+else
+	nano src/main/java/com/miniontoby/ModUpdater/$1.java
+fi

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#javac Main.java || exit 1
+#javac -d . Main.java || exit 1
+#java ModUpdater.Main
+
+cd ~/modupdater-java/ModUpdater
+
+if [[ "x$1" == "xall" ]]; then
+	mvn clean compile assembly:single package install site site-deploy || exit 1
+else
+	mvn compile assembly:single package install || exit 1
+fi
+#mvn clean dependency:copy-dependencies package
+
+java -jar target/ModUpdater-*-jar-with-dependencies.jar
+#java -cp target/ModUpdater-1.0-SNAPSHOT.jar com.miniontoby.ModUpdater.App
