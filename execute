@@ -1,4 +1,4 @@
 #!/bin/bash
 
-java -jar target/ModUpdater-*-jar-with-dependencies.jar $1 $2 $3 $4
+java -jar target/modupdater-*-jar-with-dependencies.jar $1 $2 $3 $4
 #java -cp target/ModUpdater-1.0-SNAPSHOT.jar com.miniontoby.ModUpdater.App $1 $2 $3

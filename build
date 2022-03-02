@@ -13,5 +13,5 @@ else
 fi
 #mvn clean dependency:copy-dependencies package
 
-java -jar target/ModUpdater-*-jar-with-dependencies.jar
+java -jar target/modupdater-*-jar-with-dependencies.jar
 #java -cp target/ModUpdater-1.0-SNAPSHOT.jar com.miniontoby.ModUpdater.App
