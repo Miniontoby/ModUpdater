@@ -6,7 +6,7 @@
   <bannerLeft>
     <name>${artifactId}</name>
     <src>https://maven.apache.org/images/apache-maven-project.png</src>
-    <href>https://www.apache.org/</href>
+    <href>https://miniontoby.github.io/ModUpdater</href>
   </bannerLeft>
 
   <bannerRight>
@@ -26,12 +26,9 @@
       <item name="Maven" href="https://maven.apache.org/"/>
     </links>
 
-    <menu name="Examples">
-      <item name="APT Format" href="format.html"/>
-      <item name="FAQ" href="faq.html"/>
-      <item name="Markdown Example" href="markdown.html"/>
-      <item name="Markdown with Velocity Example" href="markdown-velocity.html"/>
-      <item name="Xdoc Example" href="xdoc.html"/>
+    <menu name="Usage">
+      <item name="GUI Usage" href="GUIUsage.html"/>
+      <item name="CMD Usage" href="CMDUsage.html"/>
     </menu>
 
     <menu ref="reports" />

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mvn clean compile assembly:single package deploy site site:stage scm-publish:publish-scm
+
+# mvn archetype:generate -DgroupId=com.miniontoby -DartifactId=modupdater -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-site -DarchetypeVersion=1.4 -DinteractiveMode=false
