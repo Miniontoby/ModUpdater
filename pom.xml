@@ -8,19 +8,16 @@
 
 	<name>ModUpdater</name>
 	<description>Java app to update your minecraft mods</description>
-	<url>http://kodipi.fritz.box/ModUpdater</url>
+	<url>https://miniontoby.github.io/ModUpdater</url>
 	<organization>
 		<name>TheDutchProgrammers</name>
-		<url></url>
 	</organization>
 	<developers>
 		<developer>
 			<id>miniontoby</id>
 			<name>Miniontoby</name>
 			<email>tobias.gaarenstroom@gmail.com</email>
-			<url></url>
 			<organization>TheDutchProgrammers</organization>
-			<organizationUrl></organizationUrl>
 			<roles>
 				<role>developer</role>
 			</roles>
@@ -31,13 +28,11 @@
 		</developer>
 	</developers>
 
-	<licenses>
-	</licenses>
-
 	<distributionManagement>
 		<site>
-			<id>website</id>
-			<url>file:///var/www/html/ModUpdater/</url>
+			<id>github</id>
+			<url>scm:git:git@github.com:Miniontoby/ModUpdater.git</url>
+			<!--<url>file:///var/www/html/ModUpdater/</url>-->
 		</site>
 		<repository>
 			<id>github</id>
@@ -69,7 +64,6 @@
 			<artifactId>gson</artifactId>
 			<version>2.8.9</version>
 			<scope>compile</scope>
-			<optional>false</optional>
 		</dependency>
 
 		<dependency>
@@ -77,7 +71,6 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.9.0</version>
 			<scope>compile</scope>
-			<optional>false</optional>
 		</dependency>
 	</dependencies>
 
@@ -127,10 +120,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>2.8.2</version>
-					<configuration>
-						<!--<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>-->
-						<!--<altDeploymentRepository>github::default::https://maven.pkg.github.com/Miniontoby/ModUpdater</altDeploymentRepository>-->
-					</configuration>
+					<configuration></configuration>
 				</plugin>
 				<!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
 				<plugin>
@@ -181,9 +171,25 @@
 						<tagNameFormat>@{project.version}</tagNameFormat>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-scm-publish-plugin</artifactId>
+					<version>3.0.0</version>
+					<configuration>
+						<scmBranch>gh-pages</scmBranch>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</reporting>
 	<scm>
 		<connection>scm:git:${project.scm.url}</connection>
 		<developerConnection>scm:git:${project.scm.url}</developerConnection>

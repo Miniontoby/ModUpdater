@@ -1,0 +1,5 @@
+#!/bin/bash
+
+
+# mvn archetype:generate -DgroupId=com.miniontoby -DartifactId=modupdater -DarchetypeGroupId=org.apache.maven.archetypes -DarchetypeArtifactId=maven-archetype-site -DarchetypeVersion=1.4 -DinteractiveMode=false
+mvn clean site site:stage scm-publish:publish-scm
