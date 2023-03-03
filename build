@@ -1,18 +1,15 @@
 #!/bin/bash
-
-#javac Main.java || exit 1
-#javac -d . Main.java || exit 1
-#java ModUpdater.Main
-
 cd ~/modupdater-java/ModUpdater
 
-if [[ "x$1" == "xall" ]]; then
-	mvn clean compile assembly:single package install site site-deploy || exit 1
-else
-	mvn compile assembly:single package install || exit 1
-fi
-#mvn clean dependency:copy-dependencies package
+if [ -f .apikey ]; then API_KEY=$(cat .apikey); fi # Just set the API_KEY env to the contents of the .apikey file (for running the test command thingy)
 
-java -jar target/modupdater-*-jar-with-dependencies.jar
-#java -cp target/ModUpdater-1.0-SNAPSHOT.jar com.miniontoby.ModUpdater.App
+if [[ "x$1" == "xall" ]]; then
+	mvn clean compile assembly:single package site site-deploy || exit 1
+else
+	mvn compile assembly:single package || exit 1
+fi
+
+VERSION=$(cat pom.xml | grep "<version>" | sed -e 's/.*<version>//g;s/<\/v.*//g' | sed -n '1p')
+cp target/modupdater-$VERSION-jar-with-dependencies.jar downloads/
+./execute
 

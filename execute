@@ -1,4 +1,8 @@
 #!/bin/bash
 
-java -jar target/modupdater-*-jar-with-dependencies.jar $1 $2 $3 $4
+VERSION=$(cat pom.xml | grep "<version>" | sed -e 's/.*<version>//g;s/<\/v.*//g' | sed -n '1p')
+
+java -jar target/modupdater-$VERSION-jar-with-dependencies.jar $1 $2 $3 $4 $5
+#java -Djava.awt.headless=true -jar target/modupdater-$VERSION-jar-with-dependencies.jar $1 $2 $3 $4 $5
+
 #java -cp target/ModUpdater-1.0-SNAPSHOT.jar com.miniontoby.ModUpdater.App $1 $2 $3

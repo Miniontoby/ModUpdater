@@ -17,16 +17,19 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.SwingUtilities;
 //import javax.swing.plaf.metal;
 
-public class UpdaterGui extends JFrame {
-	public static UpdaterGui instance;
+public class Gui extends JFrame {
+	public static Gui instance;
 	private JTabbedPane contentPane;
 	private CheckModPanel CM;
 	private InstallModPanel IM;
 	private UpdateAllModsPanel UAM;
+	private InstallModpackPanel IMP;
 	private static String pidValue;
 	private static String versionValue;
+	private static String modLoaderValue;
 	private static File locationValue;
 	private static String didSubmit = null;
 
@@ -35,13 +38,15 @@ public class UpdaterGui extends JFrame {
 	private static void setPid(String pid) { pidValue = pid; }
 	public static String getVersion() { return versionValue; }
 	private static void setVersion(String version) { versionValue = version; }
+	public static String getModLoader() { return modLoaderValue; }
+	private static void setModLoader(String modLoader) { modLoaderValue = modLoader; }
 	public static File getFolder() { return locationValue; }
 	private static void setFolder(File location) { locationValue = location; }
 
 	private static class T implements Runnable {
-		private UpdaterGui e;
+		private Gui e;
 
-		public T(UpdaterGui e) {
+		public T(Gui e) {
 			this.e = e;
 		}
 
@@ -52,6 +57,7 @@ public class UpdaterGui extends JFrame {
 					if (CheckModPanel.getSubmit()){
 						setPid(CheckModPanel.getPid());
 						setVersion(CheckModPanel.getVersion());
+						setModLoader(CheckModPanel.getModLoader());
 						didSubmit = "checkMod";
 						e.setVisible(false);
 						break;
@@ -65,6 +71,11 @@ public class UpdaterGui extends JFrame {
 					} else if (UpdateAllModsPanel.getSubmit()) {
 						setFolder(UpdateAllModsPanel.getFolder());
 						didSubmit = "updateAllMods";
+						e.setVisible(false);
+						break;
+					} else if (InstallModpackPanel.getSubmit()) {
+						setFolder(InstallModpackPanel.getFolder());
+						didSubmit = "installModpack";
 						e.setVisible(false);
 						break;
 					}
@@ -81,15 +92,17 @@ public class UpdaterGui extends JFrame {
 		}
 	}
 
-	public UpdaterGui(){
+	public Gui(){
 		contentPane = new JTabbedPane();
 		CM = new CheckModPanel();
 		IM = new InstallModPanel();
 		UAM = new UpdateAllModsPanel();
+		IMP = new InstallModpackPanel();
 
 		contentPane.addTab("Check Mod", CM);
 		contentPane.addTab("Install Mod", IM);
 		contentPane.addTab("Update All Mods", UAM);
+		contentPane.addTab("Install Modpack", IMP);
 
 //		UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
 		setContentPane(contentPane);
@@ -101,7 +114,7 @@ public class UpdaterGui extends JFrame {
 	}
 
 	public static boolean main(String s[]) throws Exception {
-		UpdaterGui frame = new UpdaterGui();
+		Gui frame = new Gui();
 		Thread thread = new Thread(new T(frame));
 		thread.start();
 
@@ -124,11 +137,14 @@ class CheckModPanel extends JPanel {
 	public static CheckModPanel instance;
 	private JLabel pidLabel;
 	private JLabel versionLabel;
+	private JLabel modLoaderLabel;
 	private JTextField pidField;
 	private JTextField versionField;
+	private JTextField modLoaderField;
 	private JButton submit;
 	private static String pidValue;
 	private static String versionValue;
+	private static String modLoaderValue;
 	private static boolean didSubmit = false;
 
 	public static boolean getSubmit() { return didSubmit; }
@@ -137,6 +153,8 @@ class CheckModPanel extends JPanel {
 	private void setPid(String pid) { this.pidValue = pid; }
 	public static String getVersion() { return versionValue; }
 	private void setVersion(String version) { this.versionValue = version; }
+	public static String getModLoader() { return modLoaderValue; }
+	private void setModLoader(String modLoader) { this.modLoaderValue = modLoader; }
 
 	public CheckModPanel() {
 		pidLabel = new JLabel("Project ID:");
@@ -149,6 +167,10 @@ class CheckModPanel extends JPanel {
 		versionField.setBounds(0, 0, 10, 20);
 		versionField.setColumns(10);
 
+		modLoaderLabel = new JLabel("ModLoader:");
+		modLoaderField = new JTextField("");
+		modLoaderField.setColumns(10);
+
 		submit = new JButton("Submit");
 
 		GroupLayout layout = new GroupLayout(this);
@@ -157,25 +179,27 @@ class CheckModPanel extends JPanel {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 			.addGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidLabel).addComponent(versionLabel))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidField).addComponent(versionField))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidLabel).addComponent(versionLabel).addComponent(modLoaderLabel))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidField).addComponent(versionField).addComponent(modLoaderField))
 			).addComponent(submit)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(pidLabel).addComponent(pidField))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(versionLabel).addComponent(versionField))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(modLoaderLabel).addComponent(modLoaderField))
 			).addComponent(submit)
 		);
 
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if(pidField.getText().isEmpty()||versionField.getText().isEmpty())
+				if(pidField.getText().isEmpty()||versionField.getText().isEmpty()||modLoaderField.getText().isEmpty())
 					JOptionPane.showMessageDialog(null, "Data Missing");
 				else {
-					setSubmit();
 					setPid(pidField.getText());
 					setVersion(versionField.getText());
+					setModLoader(modLoaderField.getText());
+					setSubmit();
 				}
 			}
 		});
@@ -186,13 +210,16 @@ class InstallModPanel extends JPanel implements ActionListener {
 	public static InstallModPanel instance;
 	private JLabel pidLabel;
 	private JLabel versionLabel;
+	private JLabel modLoaderLabel;
 	private JLabel locationLabel;
 	private JTextField pidField;
 	private JTextField versionField;
+	private JTextField modLoaderField;
 	private JButton submit;
 	private JButton locationSelect;
 	private static String pidValue;
 	private static String versionValue;
+	private static String modLoaderValue;
 	private static File locationValue;
 	private boolean locationSet = false;
 	private static boolean didSubmit = false;
@@ -203,19 +230,23 @@ class InstallModPanel extends JPanel implements ActionListener {
 	private void setPid(String pid) { this.pidValue = pid; }
 	public static String getVersion() { return versionValue; }
 	private void setVersion(String version) { this.versionValue = version; }
+	public static String getModLoader() { return modLoaderValue; }
+	private void setModLoader(String modLoader) { this.modLoaderValue = modLoader; }
 	public static File getFolder() { return locationValue; }
 	private void setFolder(File location) { this.locationValue = location; this.locationSet = true; }
 
 	public InstallModPanel() {
 		pidLabel = new JLabel("Project ID:");
 		pidField = new JTextField("");
-//		pidField.setBounds(128, 28, 86, 20);
 		pidField.setColumns(10);
 
 		versionLabel = new JLabel("Version:");
 		versionField = new JTextField("");
-//		versionField.setBounds(128, 28, 86, 20);
 		versionField.setColumns(10);
+
+		modLoaderLabel = new JLabel("ModLoader:");
+		modLoaderField = new JTextField("");
+		modLoaderField.setColumns(10);
 
 		locationLabel = new JLabel("Select the .minecraft folder:");
 		locationSelect = new JButton("Select");
@@ -229,26 +260,28 @@ class InstallModPanel extends JPanel implements ActionListener {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 			.addGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidLabel).addComponent(versionLabel).addComponent(locationLabel))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidField).addComponent(versionField).addComponent(locationSelect))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidLabel).addComponent(versionLabel).addComponent(modLoaderLabel).addComponent(locationLabel))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(pidField).addComponent(versionField).addComponent(modLoaderField).addComponent(locationSelect))
 			).addComponent(submit)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(pidLabel).addComponent(pidField))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(versionLabel).addComponent(versionField))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(modLoaderLabel).addComponent(modLoaderField))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(locationLabel).addComponent(locationSelect))
 			).addComponent(submit)
 		);
 
 		submit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if(pidField.getText().isEmpty()||(versionField.getText().isEmpty()||!locationSet))
+				if(pidField.getText().isEmpty()||(versionField.getText().isEmpty()||!locationSet)||modLoaderField.getText().isEmpty())
 					JOptionPane.showMessageDialog(null, "Data Missing");
 				else {
-					setSubmit();
 					setPid(pidField.getText());
 					setVersion(versionField.getText());
+					setModLoader(modLoaderField.getText());
+					setSubmit();
 				}
 			}
 		});
@@ -321,3 +354,61 @@ class UpdateAllModsPanel extends JPanel implements ActionListener {
 		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) setFolder(chooser.getSelectedFile());
 	}
 }
+class InstallModpackPanel extends JPanel implements ActionListener {
+	public static InstallModpackPanel instance;
+	private JLabel locationLabel;
+	private JButton locationSelect;
+	private JButton submit;
+	private static File locationValue;
+	private boolean locationSet = false;
+	private static boolean didSubmit = false;
+
+	public static boolean getSubmit() { return didSubmit; }
+	private void setSubmit() { didSubmit = true; }
+	public static File getFolder() { return locationValue; }
+	private void setFolder(File location) { this.locationValue = location; this.locationSet = true; }
+
+	public InstallModpackPanel() {
+		locationLabel = new JLabel("Select the .minecraft folder:");
+		locationSelect = new JButton("Select");
+		locationSelect.addActionListener(this);
+
+		submit = new JButton("Submit");
+
+		GroupLayout layout = new GroupLayout(this);
+		this.setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+			.addGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(locationLabel))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(locationSelect))
+			).addComponent(submit)
+		);
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(locationLabel).addComponent(locationSelect))
+			).addComponent(submit)
+		);
+
+		submit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(!locationSet)
+					JOptionPane.showMessageDialog(null, "Folder location missing!");
+				else {
+					setSubmit();
+				}
+			}
+		});
+	}
+	public void actionPerformed(ActionEvent e) {
+		JFileChooser chooser = new JFileChooser();
+		chooser.setCurrentDirectory(FileSystemView.getFileSystemView().getHomeDirectory());
+		chooser.setDialogTitle("Select the .minecraft folder (With manifest.json inside)");
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		chooser.setAcceptAllFileFilterUsed(false);
+		if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) setFolder(chooser.getSelectedFile());
+	}
+}
+

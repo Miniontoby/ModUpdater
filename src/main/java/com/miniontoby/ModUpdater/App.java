@@ -7,12 +7,23 @@ import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 
 public class App {
-	private static String api_url = "https://addons-ecs.forgesvc.net/api/v2";
+	private static String settings_file = System.getProperty("user.home") + File.separator + ".ModUpdater" + File.separator + "settings.properties";
+	private static String api_url = "https://api.curseforge.com/v1";
+	private static String api_key = "";
 	private static JsonObject getJSON(String url) {
-		try (java.io.InputStream is = new java.net.URL(url).openStream()) {
+		try {
+			java.net.URLConnection uc = new java.net.URL(url).openConnection();
+			uc.setRequestProperty("User-Agent", "ModUpdater - https://github.com/Miniontoby/ModUpdater");
+			uc.setRequestProperty("x-api-key", api_key);
+			java.io.InputStream is = uc.getInputStream();
+
 			String contents = new String(is.readAllBytes());
 			JsonObject jsonObject = JsonParser.parseString(contents).getAsJsonObject();
 			return jsonObject;
@@ -25,27 +36,34 @@ public class App {
 		}
 		return null;
 	}
-	// private static int getFileForVersion(JsonObject rootObject, String version, int modLoader){
-	private static int getFileForVersion(JsonObject rootObject, String version){
-		JsonArray files = rootObject.getAsJsonArray("gameVersionLatestFiles");
+	private static JsonObject getFileForVersion(JsonObject rootObject, String version, String modloader) {
+		int modLoader = modloaderToInt(modloader);
+		JsonArray files = rootObject.getAsJsonObject("data").getAsJsonArray("latestFilesIndexes");
+		JsonObject file;
 		for (int i=0; i<files.size(); i++) {
-			JsonObject file = files.get(i).getAsJsonObject();
-			// if (file.get("modLoader").getAsInt() == modLoader){
-				if (file.get("gameVersion").isJsonArray() ){
-					JsonArray versionArray = file.get("ganeVersion").getAsJsonArray();
-					for (int j=0; j < versionArray.size(); j++) {
-						if (versionArray.get(j).getAsString().equals(version)){
-							return file.get("projectFileId").getAsInt();
-						}
-					}
-				} else if (file.get("gameVersion").getAsJsonPrimitive().isString()) {
-					if (file.get("gameVersion").getAsString().equals(version)) {
-						return file.get("projectFileId").getAsInt();
+			file = files.get(i).getAsJsonObject();
+			if (modLoader != -1 && file.has("modLoader")) {
+				try {
+					int ml = file.get("modLoader").getAsInt();
+					if (ml != modLoader) continue;
+				} catch (Exception e) {
+					continue;
+				}
+			}
+			if (file.get("gameVersion").isJsonArray() ){
+				JsonArray versionArray = file.get("ganeVersion").getAsJsonArray();
+				for (int j=0; j < versionArray.size(); j++) {
+					if (versionArray.get(j).getAsString().equals(version)){
+						return file;
 					}
 				}
-			// }
+			} else if (file.get("gameVersion").getAsJsonPrimitive().isString()) {
+				if (file.get("gameVersion").getAsString().equals(version)) {
+					return file;
+				}
+			}
 		}
-		return -1;
+		return null;
 	}
 	private static JsonObject readFileToJsonObject(String filename) {
 		File file = new File(filename);
@@ -61,7 +79,7 @@ public class App {
 		}
 		return null;
 	}
-	private static boolean valildateModsJson(JsonObject jsonObject){
+	private static boolean validateModsJson(JsonObject jsonObject){
 		Gson gson = new Gson();
 		boolean returnv = true;
 		if (jsonObject != null) {
@@ -94,6 +112,39 @@ public class App {
 		}
 		return returnv;
 	}
+	private static boolean validateManifestJson(JsonObject jsonObject){
+		Gson gson = new Gson();
+		boolean returnv = true;
+		if (jsonObject != null) {
+			if (jsonObject.has("minecraft") && jsonObject.get("minecraft").isJsonObject() && jsonObject.has("files") && jsonObject.get("files").isJsonArray()) {
+				JsonArray modsArray = jsonObject.getAsJsonArray("files");
+				for (int i = 0; i < modsArray.size(); i++) {
+					if (modsArray.get(i).isJsonObject()) {
+						JsonObject modObject = modsArray.get(i).getAsJsonObject();
+						if (modObject.has("projectID") && modObject.has("fileID")) {
+							if (!(modObject.getAsJsonPrimitive("projectID").isNumber() && modObject.get("fileID").getAsJsonPrimitive().isNumber())) {
+								System.out.println("Error: Invalid json: 'projectID' and/or 'fileID' value is not a number at " + gson.toJson(modObject));
+								returnv = false;
+							}
+						} else {
+							System.out.println("Error: Invalid json: Could not find 'projectID' and/or 'fileID' key at " + gson.toJson(modObject));
+							// returnv = false;
+						}
+					} else {
+						System.out.println("Error: Invalid json: NotAnJsonObject at " + gson.toJson(modsArray.get(i)));
+						returnv = false;
+					}
+				}
+			} else {
+				System.out.println("Error: Missing 'minecraft' or 'files' field in json!");
+				returnv = false;
+			}
+		} else {
+			System.out.println("Error: Invalid json: ArraySize is 0 or does not exist at " + gson.toJson(jsonObject));
+			returnv = false;
+		}
+		return returnv;
+	}
 	private static int modloaderToInt(String modLoader) {
 		try {
 			Integer.parseInt(modLoader);
@@ -105,83 +156,74 @@ public class App {
 			case "fabric":
 				return 4;
 			default:
-				return 0;
+				return -1;
 			}
 		}
 	}
-	public static int checkMod(String[] args, boolean debug){
-		if (args.length < 3){
-			System.out.println("Usage: " + args[0] + " <ProjectId> <version>");
-			return -1;
-		}
-		String pid = args[1];
-		String version = args[2];
-		// int modLoader = modloaderToInt(args[3]);
-		String url = api_url + "/addon/" + pid;
+	public static String[] checkMod(String pid, String version, String modLoader, boolean debug){
+		String url = api_url + "/mods/" + pid;
 		if(debug) System.out.println("Checking mod with pid " + pid + " for " + version);
 
 		JsonObject jsonObject = getJSON(url);
 		if (jsonObject != null) {
 			// int fid = getFileForVersion(jsonObject, version, modLoader);
-			int fid = getFileForVersion(jsonObject, version);
-			if (fid != -1) {
+			JsonObject file = getFileForVersion(jsonObject, version, modLoader);
+			if (file != null) {
+				String fid = file.get("fileId").getAsString();
+				String fileName = file.get("filename").getAsString();
 				if(debug) System.out.println("Found mod download for " + version);
-				return fid;
+				return new String[]{fid, fileName};
 			}
 
 			System.out.println("Error: No matching mod file found for " + version);
-			return 0;
+			return new String[]{"0"};
 		}
 		System.out.println("Error: No addon found for pid " + pid);
-		return 0;
+		return new String[]{"0"};
 	}
-	public static int installMod(String[] args, String name) {
-		if (args.length < 4){
-			System.out.println("Usage: " + args[0] + " <ProjectId> <version> <path to .minecraft>");
-			return -1;
-		}
-		String pid = args[1];
-		String version = args[2];
-		// int modLoader = modloaderToInt(args[3])
-		String location = args[3];
+	public static int installMod(String pid, String version, String modLoader, String location, String name) {
+		return installMod(pid, version, modLoader, location, name, "");
+	}
+	public static int installMod(String pid, String version, String modLoader, String location, String name, String fid) {
 		if (name == "") name = pid;
 		System.out.println("Installing mod " + name + " for " + version + "...");
 
-		int fid = checkMod(args, false);
-		if (fid != 0){
-			String url = api_url + "/addon/" + pid + "/file/" + fid;
-			JsonObject jsonObject = getJSON(url);
-			if (jsonObject != null){
-				String fn = jsonObject.get("fileName").getAsString();
-				String dl = jsonObject.get("downloadUrl").getAsString();
-
-				if (!new File(location + "/mods/").exists()) new File(location + "/mods/").mkdir();
-				File fnr = new File(location + "/mods/" + fn);
-				System.out.println("Downloading " + dl + "...");
-				try {
-					java.net.URL urll = new java.net.URL(dl);
-					FileUtils.copyURLToFile(urll, fnr);
-				} catch (Exception e){
-					System.out.println("Could not download file: " + e);
-					return 0;
-				}
-				System.out.println("Downloaded " + dl + "!");
-				System.out.println("Installed mod " + name + " for " + version + "!");
-				return 1;
+		String fn = "";
+		if (fid == "") {
+			String[] file = checkMod(pid, version, modLoader, false);
+			if (file[0] != "0"){
+				fid = file[0];
+				fn = file[1];
 			}
+		}
+		String url = api_url + "/mods/" + pid + "/files/" + fid + "/download-url";
+		JsonObject jsonObject = getJSON(url);
+		if (jsonObject != null){
+			String dl = jsonObject.get("data").getAsString(); // download link
+
+			if (fn == "") fn = dl.substring( dl.lastIndexOf('/')+1, dl.length() );
+
+			if (!new File(location + "/mods/").exists()) new File(location + "/mods/").mkdir();
+			File fnr = new File(location + "/mods/" + fn);
+			System.out.println("Downloading " + dl + "...");
+			try {
+				java.net.URL urll = new java.net.URL(dl);
+				FileUtils.copyURLToFile(urll, fnr);
+			} catch (Exception e){
+				System.out.println("Could not download file: " + e);
+				return 0;
+			}
+			System.out.println("Downloaded " + dl + "!");
+			System.out.println("Installed mod " + name + " for " + version + "!");
+			return 1;
 		}
 		return 0;
 	}
-	public static int updateAllMods(String[] args){
-		if (args.length < 2){
-			System.out.println("Usage: " + args[0] + " <path to .minecraft>");
-			return -1;
-		}
-		String location = args[1];
+	public static int updateAllMods(String location) {
 		int returnv = 1;
 
 		JsonObject config = readFileToJsonObject(location + "/mods.json");
-		if (valildateModsJson(config)) {
+		if (validateModsJson(config)) {
 			File modsFolder = new File(location + "/mods/");
 			if (!modsFolder.exists()) {
 				modsFolder.mkdir();
@@ -193,10 +235,45 @@ public class App {
 					System.out.println("Error: Couldn't backup mods folder! " + e);
 				}
 			}
+			String modLoader = config.get("modLoader").getAsString();
 			JsonArray mods = config.get("mods").getAsJsonArray();
 			for (int i = 0; i < mods.size(); i++) {
 				JsonObject mod = mods.get(i).getAsJsonObject();
-				if (installMod(new String[]{"", mod.get("pid").getAsString(), config.get("version").getAsString(), location}, mod.get("name").getAsString()) == 0){
+				if (installMod(mod.get("pid").getAsString(), config.get("version").getAsString(), modLoader, location, mod.get("name").getAsString()) == 0){
+					returnv = 0;
+				}
+			}
+		} else {
+			returnv = 0;
+		}
+		return returnv;
+	}
+	final static Pattern pattern = Pattern.compile("([a-z]+)(-([0-9\\.]+)|)");
+	public static int installModpack(String location) {
+		int returnv = 1;
+
+		JsonObject manifest = readFileToJsonObject(location + "/manifest.json");
+		if (validateManifestJson(manifest)) {
+			File modsFolder = new File(location + "/mods/");
+			if (!modsFolder.exists()) {
+				modsFolder.mkdir();
+			} else {
+				File backupFolder = new File(location + "/backup_mods/" + new SimpleDateFormat("yyyy_M_dd-hh_mm_ss").format(new Date()) + "/");
+				try {
+					FileUtils.moveDirectory(modsFolder, backupFolder);
+				} catch (java.io.IOException e){
+					System.out.println("Error: Couldn't backup mods folder! " + e);
+				}
+			}
+			String modLoader = manifest.get("minecraft").getAsJsonObject().get("modLoaders").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString();
+			Matcher matcher = pattern.matcher(modLoader);
+			modLoader = matcher.replaceFirst("$1");
+
+			String version = manifest.get("minecraft").getAsJsonObject().get("version").getAsString();
+			JsonArray files = manifest.get("files").getAsJsonArray();
+			for (int i = 0; i < files.size(); i++) {
+				JsonObject file = files.get(i).getAsJsonObject();
+				if (installMod(file.get("projectID").getAsString(), version, modLoader, location, file.get("projectID").getAsString(), file.get("fileID").getAsString()) == 0){
 					returnv = 0;
 				}
 			}
@@ -206,21 +283,41 @@ public class App {
 		return returnv;
 	}
 	private static void handleArgs(String[] args){
-		switch (args[0]){
+		switch (args[0]) {
 			case "checkMod":
 				showVersion();
-				if (checkMod(args, true) == 0) System.out.println("Error: Couldn't find mod!");
+				if (args.length >= 4) {
+					if (checkMod(args[1], args[2], args[3], true)[0] == "0") System.out.println("Error: Couldn't find mod!");
+				} else {
+					System.out.println("Usage: " + args[0] + " <ProjectId> <version> <modLoader>");
+				}
 				break;
 			case "installMod":
 				showVersion();
-				if (installMod(args, "") == 0) System.out.println("Error: Couldn't install mod!");
+				if (args.length == 5){
+					if (installMod(args[1], args[2], args[3], args[4], "") == 0) System.out.println("Error: Couldn't install mod!");
+				} else {
+					System.out.println("Usage: " + args[0] + " <ProjectId> <version> <modLoader> <.minecraft location>");
+				}
 				break;
 			case "updateAllMods":
 				showVersion();
-				if (updateAllMods(args) == 0) System.out.println("Error: Couldn't update all mods!");
+				if (args.length >= 2) {
+					if (updateAllMods(args[1]) == 0) System.out.println("Error: Couldn't update all mods!");
+				} else {
+					System.out.println("Usage: " + args[0] + " <.minecraft location>");
+				}
+				break;
+			case "installModpack":
+				showVersion();
+				if (args.length >= 2) {
+					if (installModpack(args[1]) == 0) System.out.println("Error: Couldn't install modpack!");
+				} else {
+					System.out.println("Usage: " + args[0] + " <.minecraft location>");
+				}
 				break;
 			case "help":
-				System.out.println("Commands: \n- checkMod <pid> <version>\n- installMod <pid> <version> <.minecraft folder>\n- updateAllMods <.minecraft folder>\n- version");
+				System.out.println("Commands: \n- checkMod <pid> <version>\n- installMod <pid> <version> <.minecraft folder>\n- updateAllMods <.minecraft folder>\n- installModpack <.minecraft folder>\n- version");
 				break;
 			case "version":
 				showVersion();
@@ -230,25 +327,39 @@ public class App {
 				System.exit(1);
 		}
 	}
-
+	private static boolean shownVersion = false;
 	private static void showVersion() {
-		String version = App.class.getPackage().getImplementationVersion();
-		System.out.println("Powered by ModUpdater " + version);
+		if (!shownVersion) {
+			String version = App.class.getPackage().getImplementationVersion();
+			System.out.println("Powered by ModUpdater " + version);
+			shownVersion = true;
+		}
 	}
 
 	public static void main(String[] args) {
+		if (SettingsMenu.main(new String[]{settings_file})){
+			api_key = SettingsMenu.configProps.getProp("api_key");
+		} else {
+			System.out.println("Error: Config was not set!");
+			System.exit(1);
+		}
 		if (args.length > 0){
 			handleArgs(args);
 		} else {
 			showVersion();
 			try {
-				if (UpdaterGui.main(new String[]{})){
+				if (Gui.main(new String[]{})){
 					String location = "";
-					if (UpdaterGui.getFolder() != null) location = UpdaterGui.getFolder().getAbsolutePath();
-					String[] inputs = {UpdaterGui.getSubmit(), UpdaterGui.getPid(), UpdaterGui.getVersion(), location};
-					if (UpdaterGui.getSubmit() == "updateAllMods") inputs[1] = location;
+					if (Gui.getFolder() != null) location = Gui.getFolder().getAbsolutePath();
+					String[] inputs = {Gui.getSubmit(), Gui.getPid(), Gui.getVersion(), Gui.getModLoader(), location};
+					if (Gui.getSubmit() == "updateAllMods") inputs[1] = location;
+					if (Gui.getSubmit() == "installModpack") inputs[1] = location;
 					handleArgs(inputs);
 				}
+			} catch (java.awt.HeadlessException e) {
+				System.out.println("Error: Cannot show GUI!\n");
+				System.out.println("Usage: <action> [arguments]\nCheck 'help' for more info!");
+				System.exit(1);
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.exit(1);
