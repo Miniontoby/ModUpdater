@@ -118,11 +118,11 @@ Quick Note: this script will always make a backup of your current mods folder by
 If you don't have an interface on your computer, you will still be able to use this ModUpdater!
 
 Here are the possible commands with their params:
-- checkMod <pid> <version> <modloader>
-- installMod <pid> <version> <modloader> <.minecraft folder>
-- updateAllMods <.minecraft folder>
-- installModpack <.minecraft folder>
-- version
-- help
+- `checkMod <pid> <version> <modloader>`
+- `installMod <pid> <version> <modloader> <.minecraft folder>`
+- `updateAllMods <.minecraft folder>`
+- `installModpack <.minecraft folder>`
+- `version`
+- `help`
 
 These commands work the same as with the GUI one, but the GUI just makes it simpler to use this ModUpdater
