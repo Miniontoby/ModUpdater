@@ -16,7 +16,7 @@ import org.apache.commons.io.FileUtils;
 public class App {
 	private static String settings_file = System.getProperty("user.home") + File.separator + ".ModUpdater" + File.separator + "settings.properties";
 	private static String api_url = "https://api.curseforge.com/v1";
-	private static String api_key = "";
+	public static String api_key = "";
 	private static JsonObject getJSON(String url) {
 		try {
 			java.net.URLConnection uc = new java.net.URL(url).openConnection();
