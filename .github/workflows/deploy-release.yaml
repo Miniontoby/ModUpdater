@@ -30,7 +30,7 @@ jobs:
           release-branch-name: main
           version-patch: true
           maven-development-version-number: ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextPatchVersion}-SNAPSHOT
-          maven-release-version-number: ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.0
+          maven-release-version-number: ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.patchVersion}
 
           maven-args: "-Dmaven.javadoc.skip=true -DskipTests -DskipITs -Dmaven.deploy.skip=true"
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
