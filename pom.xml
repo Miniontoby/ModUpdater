@@ -4,7 +4,7 @@
 
 	<groupId>com.miniontoby</groupId>
 	<artifactId>modupdater</artifactId>
-	<version>1.3.1-SNAPSHOT</version>
+	<version>1.3.0</version>
 
 	<name>ModUpdater</name>
 	<description>Java app to update your minecraft mods</description>
