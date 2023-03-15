@@ -4,7 +4,7 @@
 
 	<groupId>com.miniontoby</groupId>
 	<artifactId>modupdater</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0</version>
 
 	<name>ModUpdater</name>
 	<description>Java app to update your minecraft mods</description>
@@ -121,7 +121,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>2.8.2</version>
-					<configuration></configuration>
+					<configuration />
 				</plugin>
 				<!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
 				<plugin>
@@ -195,6 +195,6 @@
 		<connection>scm:git:${project.scm.url}</connection>
 		<developerConnection>scm:git:${project.scm.url}</developerConnection>
 		<url>git@github.com:Miniontoby/ModUpdater.git</url>
-		<tag>HEAD</tag>
+		<tag>v1.3.0</tag>
 	</scm>
 </project>
