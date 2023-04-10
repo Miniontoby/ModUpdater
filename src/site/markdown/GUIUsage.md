@@ -1,7 +1,7 @@
 GUI Usage
 ---------------
 
-In the GUI you have three options: "Check Mod", "Install Mod" and "Update All Mods"
+In the GUI you have three options: "Check Mod", "Install Mod", "Update All Mods" and "Install Modpack"
 
 ### Check Mod
 
@@ -56,3 +56,19 @@ Here is an example:
 ```
 
 At the moment of writing this, it doesn't matter what you enter at the 'modLoader' field, but make sure it is a number (1 = forge, 4 = fabric)
+
+
+#### Install Modpack
+
+Here you can install a modpack.
+
+Options: 
+- .minecraft folder location
+
+At .minecraft Folder Location you need to select the '.minecraft' folder for your minecraft client or server. 
+Note: This is NOT the mods folder, this is the folder where the mods folder is located at!!!
+
+Note: You need to have a modpack 'manifest.json' file in your .minecraft folder!
+
+
+Quick Note: this script will always make a backup of your current mods folder by moving it to folder '.minecraft/backup_mods/yyyy_M_dd-hh_mm_ss/' (`yyyy_M_dd-hh_mm_ss` is an timestamp format)

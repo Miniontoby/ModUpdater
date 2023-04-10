@@ -27,6 +27,18 @@
 			</properties>
 		</developer>
 	</developers>
+	<distributionManagement>
+		<site>
+			<id>github</id>
+			<url>scm:git:git@github.com:Miniontoby/ModUpdater.git</url>
+			<!--<url>file:///var/www/html/ModUpdater/</url>-->
+		</site>
+		<repository>
+			<id>github</id>
+			<name>Github</name>
+			<url>https://maven.pkg.github.com/Miniontoby/ModUpdater</url>
+		</repository>
+	</distributionManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -109,6 +121,22 @@
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>2.8.2</version>
 					<configuration />
+					<dependencies>
+						<dependency>
+						  <groupId>org.apache.maven.scm</groupId>
+						  <artifactId>maven-scm</artifactId>
+						  <version>2.0.0</version>
+						  <type>pom</type>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-scm-plugin</artifactId>
+					<version>2.0.0</version>
+					<configuration>
+						<connectionType>connection</connectionType>
+					</configuration>
 				</plugin>
 				<!-- site lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#site_Lifecycle -->
 				<plugin>

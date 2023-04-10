@@ -6,7 +6,7 @@ ModUpdater is a tool/app for Downloading and Updating Minecraft Mods
 
 ## Install
 
-Download the ModUpdater-1.2.0-SNAPSHOT-jar-with-dependencies.jar which is located at the 'target' folder
+Download the ModUpdater-1.3.0-SNAPSHOT-jar-with-dependencies.jar which is located at the `download` folder or in the releases section of github
 
 
 ## Usage 
