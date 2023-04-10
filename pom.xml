@@ -32,7 +32,7 @@
 		<site>
 			<id>github</id>
 			<url>${project.scm.connection}</url>
-			<url>file:///var/www/html/ModUpdater/</url>-->
+			<!--<url>file:///var/www/html/ModUpdater/</url>-->-->
 		</site>
 		<repository>
 			<id>github</id>
