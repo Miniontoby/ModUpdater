@@ -72,6 +72,13 @@
 			<version>2.9.0</version>
 			<scope>compile</scope>
 		</dependency>
+
+		<dependency>
+		  <groupId>org.apache.maven.scm</groupId>
+		  <artifactId>maven-scm</artifactId>
+		  <version>2.0.0</version>
+		  <type>pom</type>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -121,14 +128,6 @@
 					<artifactId>maven-deploy-plugin</artifactId>
 					<version>2.8.2</version>
 					<configuration />
-					<dependencies>
-						<dependency>
-						  <groupId>org.apache.maven.scm</groupId>
-						  <artifactId>maven-scm</artifactId>
-						  <version>2.0.0</version>
-						  <type>pom</type>
-						</dependency>
-					</dependencies>
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -210,6 +209,6 @@
 		<connection>scm:git:${project.scm.url}</connection>
 		<developerConnection>scm:git:${project.scm.url}</developerConnection>
 		<url>git@github.com:Miniontoby/ModUpdater.git</url>
-    <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 </project>
