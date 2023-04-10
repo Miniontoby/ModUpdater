@@ -7,6 +7,7 @@ Here are the possible commands with their params:
 - `checkMod <pid> <version>`
 - `installMod <pid> <version> <.minecraft folder>`
 - `updateAllMods <.minecraft folder>`
+- `installModpack <.minecraft folder>`
 - `version`
 - `help`
 
