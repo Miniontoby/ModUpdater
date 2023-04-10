@@ -32,8 +32,8 @@
 		<site>
 			<id>github</id>
 			<!--<url>${project.scm.connection}</url>-->
-			<!--<url>scm:git:https://github.com/Miniontoby/ModUpdater.git</url>-->
-			<url>file:///var/www/html/ModUpdater/</url>
+			<url>scm:git:https://github.com/Miniontoby/ModUpdater.git</url>
+			<!--<url>file:///var/www/html/ModUpdater/</url>-->
 		</site>
 		<repository>
 			<id>github</id>
